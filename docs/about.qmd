@@ -1,0 +1,26 @@
+---
+title: "Jacob Organista"
+about:
+  template: jolla
+  image: profilepicture1.png
+  links:
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com/in/jacob-organista-59a662326/
+    - icon: github
+      text: Github
+      href: https://github.com/jorganista18/JacobO-Portfolio
+---
+
+Jacob Organista is a Fourth-year Marine Science Student at [California State University, Monterey Bay](http://csumb.edu/mathstat).
+
+## Education
+
+California State University, Monterey Bay \| Seaside, CA\
+Marine Science Undergraduate \| 2021-2025
+
+## Experience
+
+TGA Golf Academy \| Golf Coach \| May 2024 - August 2024
+
+Pacific Grove Golf Links \| Outdoor Services \| Sept 2024 - Present
