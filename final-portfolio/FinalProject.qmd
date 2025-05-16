@@ -15,6 +15,7 @@ The dataset used in this portfolio was sourced from Kaggle and encompasses all r
 Link: [Data Source](https://www.kaggle.com/datasets/brsdincer/all-natural-disasters-19002021-eosdis/data)
 
 ```{r}
+#| label: libraries
 library(tidyverse)
 library(readr)
 ```
@@ -23,7 +24,7 @@ library(readr)
 
 ```{r}
   #| eval: false
-disaster_raw <- read_csv("../final-portfolio/data_raw/DISASTERS/1900_2021_DISASTERS.xlsx - emdat data.csv")
+disaster_raw <- read_csv("../final-portfolio/data_raw/DISASTERS/1900_2021_DISASTERS.xlsx - emdat data.csv") #Reading in csv
 ```
 
 *Research Question #1* For the first part of the data cleaning, I needed to focus on the end goal of Research Question #1. Because the first question was, "Does the region where a disaster occurred affect the amount of fatalities?", I started with looking over the original, raw dataset to select the variables (Region, Origin, Total Deaths, Total Damages ('000 US\$)) that would be useful in the final visualization. After the first cleaning, I was able to add this new dataset into a data clean folder to save for later. After the initial clean, I first, calculated the average number of deaths (death_avg) for each region by grouping the cleaned dataset (ResearchQ1_clean) by Region and taking the mean of the Total Deaths column. Then I did a similar code chunk as the last but averaged the Total Damages within the same dataset that was used for the previous chunk. Lastly, I used a left join the average damage dataset to the death average dataset by the matching regions to complete the dataset that would be used to create the visualization for Research Question #1.
@@ -37,17 +38,15 @@ ResearchQ1_clean <- disaster_raw %>%
 write_csv(ResearchQ1_clean, file = "data_clean/ResearchQ1_clean.csv") #saving clean data
 
 Q1_deathavg <- ResearchQ1_clean %>%
-  group_by(Region) %>%
-  summarize(death_avg = mean(`Total Deaths`, na.rm = TRUE)) 
+  group_by(Region) %>% #grouping by region
+  summarize(death_avg = mean(`Total Deaths`, na.rm = TRUE)) #averaging the total deaths without NAs
 
 Q1_damageavg <- ResearchQ1_clean %>%
-  group_by(Region) %>%
-  summarize(damage_avg = mean(`Total Damages ('000 US$)`, na.rm = TRUE))
+  group_by(Region) %>% #grouping by region
+  summarize(damage_avg = mean(`Total Damages ('000 US$)`, na.rm = TRUE)) #averaging the total damage without NAs
 
-Graph_ResearchQ1 <- Q1_deathavg %>%
-left_join(Q1_damageavg, by = "Region")
-
-write_csv(Graph_ResearchQ1, file = "data_clean/ResearchQ1_clean.csv") 
+Graph_ResearchQ1 <- Q1_deathavg %>% 
+left_join(Q1_damageavg, by = "Region") #joining the average damage to death by their similar regions 
 ```
 
 *Research Question #2* For the second part of the data cleaning, I need to focus on the end goal of Research Question #2. Because the first question was, "How does the type of disaster influence the total number of deaths per Continent?", I once again originated to the raw dataset to select the variables (Disaster Type, Country, Region, Continent,Total Deaths, No Injured, Total Affected, Total Damages ('000 US\$)) that is useful for the second final visualization. After cleaning and selecting the necessary variables, I started to filter and remove the unnecessary columns where there is missing data within the columns that use integers (Deaths, Injured, Affected, Damages). I was also able to filter and remove the unnecessary columns where there is missing data within the columns that use characters (Disaster Type, Continent). Then I completed the data cleaning by adding this new cleaner dataset back into the clean data folder.
@@ -77,23 +76,25 @@ write_csv(ResearchQ2_clean, file = "data_clean/ResearchQ2_clean.csv") #saving cl
 This data visualization is a horizontal bar chart displaying the average number of deaths caused by natural disasters across various world regions, with the x-axis on a logarithmic scale. Each bar represents a different region, and the length of the bar corresponds to the log-transformed average number of deaths in that region. Using a log scale allows for better comparison across regions with vastly different death averages, preventing regions with extremely high values (such as the Russian Federation and Southern Asia) from visually dominating the chart. The color coding distinguishes each region, enhancing readability. Notably, Eastern Asia, Russian Federation, and Southern Asia show the highest average death tolls, while regions like Micronesia, Polynesia, and Middle Africa have much lower averages. This visualization effectively highlights geographic disparities in natural disaster mortality impacts, offering a clearer view of which areas are historically more affected in terms of human loss.
 
 ```{r}
-Graph_ResearchQ1 <- read_csv("../final-portfolio/data_clean/ResearchQ1_clean.csv")
+#| label: Clean data for Research Question 1
+Graph_ResearchQ1 <- read_csv("../final-portfolio/data_clean/ResearchQ1_clean.csv") #Reading in the data that was previously cleaned
 ```
 
-
 ```{r}
-ggplot(Graph_ResearchQ1, aes(x = reorder(Region, damage_avg), 
-                             y = death_avg, fill = Region)) +
-  geom_bar(stat = "identity") +
-  scale_y_log10() +
-  coord_flip() +
-  labs(
+#| label: Graph of Research Question 1
+ggplot(Graph_ResearchQ1, aes(x = reorder(Region, damage_avg), #show regions sorted by their average damage
+                             y = death_avg, #Sets the y-axis to represent average deaths
+                             fill = Region)) + #Fills the bars with a different color for each region
+  geom_bar(stat = "identity") + #Uses actual values from the data
+  scale_y_log10() + #Applies a logarithmic transformation to the y-axis to better visualize a wide range of death values.
+  coord_flip() + #Flips the axes
+  labs( #axes labels and title
     title = "Average Deaths by Region (Log Scale)",
     x = "Region",
     y = "Log of Average Deaths"
   ) +
-  theme_minimal() +
-  theme(legend.position = "none")
+  theme_minimal() + #Applies the minimal theme
+  theme(legend.position = "none") #Removes the legend, which is not needed since each bar's label is already shown on the axis.
 ```
 
 *Figure 1.* Average number of deaths by region, displayed on a logarithmic scale. The Russian Federation and Eastern Asia exhibit the highest averages.
@@ -103,28 +104,36 @@ ggplot(Graph_ResearchQ1, aes(x = reorder(Region, damage_avg),
 This data visualization is a heatmap that displays the total number of deaths caused by different types of natural disasters across continents. The y-axis represents the type of disaster, while the x-axis shows the continent. The color intensity of each cell reflects the magnitude of total deaths, with darker shades of red indicating higher death tolls and lighter shades representing lower ones. From the heatmap, it's clear that Asia has experienced the highest death tolls from several disaster types, especially droughts, epidemics, and floods, which are shown in the darkest shades. Europe and the Americas also show significant deaths from epidemics and earthquakes, though to a lesser extent than Asia. In contrast, continents like Oceania and Africa show relatively lighter color intensities, indicating fewer recorded deaths for most disaster types in the dataset. This visualization effectively highlights both the distribution and severity of natural disaster impacts across regions, offering a quick comparative overview of how different continents have been affected by various types of disasters.
 
 ```{r}
-ResearchQ2_clean <- read_csv("../final-portfolio/data_clean/ResearchQ2_clean.csv")
+#| label: Clean data for Research Question 2
+ResearchQ2_clean <- read_csv("../final-portfolio/data_clean/ResearchQ2_clean.csv") #Reading in the data that was previously cleaned
 ```
-
 
 ```{r}
 #| label: Graph of Research Question 2
 heatmap_data <- ResearchQ2_clean %>%
-  filter(!is.na(`Total Deaths`)) %>%
-  group_by(`Disaster Type`, Continent) %>%
-  summarise(Total_Deaths = sum(`Total Deaths`, na.rm = TRUE), .groups = "drop")
+  filter(!is.na(`Total Deaths`)) %>% #Removes NAs of Total Deaths
+  group_by(`Disaster Type`, Continent) %>% #Keeps Disaster Type and Continent
+  summarise(Total_Deaths = sum(`Total Deaths`, na.rm = TRUE), .groups = "drop") #Sums deaths while ignoring any remaining NA values.
 
-ggplot(heatmap_data, aes(x = Continent, y = `Disaster Type`, fill = Total_Deaths)) +
-  geom_tile(color = "snow") +
-  scale_fill_gradient(low = "wheat", high = "darkred", na.value = "snow") +
-  labs(
+ggplot(heatmap_data, aes(
+  x = Continent, #Maps x to Continent
+  y = `Disaster Type`, #Maps y to Disaster Type
+  fill = Total_Deaths #Maps fill to Total Deaths used to determine the tile color intensity
+  )) +
+  geom_tile(color = "snow") + #Adds tiles to form the heatmap
+  scale_fill_gradient( #Defines a color gradient for the fill
+    low = "wheat", #Low values use a light tan (wheat)
+    high = "darkred", #High values use dark red (indicating more deaths)
+    na.value = "snow" #Missing values are filled with "snow"
+    ) +
+  labs( #Creating a custom title, axis labels, and legend title
     title = "Heatmap of Total Deaths by Disaster Type and Continent",
     x = "Continent",
     y = "Disaster Type",
     fill = "Deaths"
   ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) #Rotates the x-axis text by 45 degrees for readability
 ```
 
 *Figure 2.* Heatmap showing total deaths by disaster type and continent. The darkest cells indicate the highest death tolls, with Asia experiencing the most fatalities, particularly from droughts, epidemics, and floods. Other continents report significantly lower mortality figures across all disaster types.
